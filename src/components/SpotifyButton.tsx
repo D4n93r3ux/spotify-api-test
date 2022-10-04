@@ -79,6 +79,7 @@ const SpotifyConnector = () => {
       if (device_id) {
         await spotifyService.startResumePlayback({ device_id, uris: ["spotify:track:4cOdK2wGLETKBW3PvgPWqT"] });
         setDisplayPunchline(true);
+        spotifyService.startResumePlayback({});
       };
     }, 3000);
 
