@@ -60,13 +60,14 @@ export default class SpotifyAPI {
     params.append("client_id", this.client_id);
     params.append("response_type", "code");
     params.append("redirect_uri", this.redirect_uri);
-    // params.append("show_dialog", "true");
+    params.append("show_dialog", "true");
     params.append("scope", this.scope.join(" "));
 
     return `${this.AUTHORIZE}?${params.toString()}`;
   }
 
   async fetchTokens(code: string) {
+    console.log("Fetching tokens");
     const body = new URLSearchParams();
     body.append("grant_type", "authorization_code");
     body.append("code", code);
@@ -96,10 +97,10 @@ export default class SpotifyAPI {
     }
   }
 
-  async refreshAccessToken() {
+  async refreshAccessToken(): Promise<boolean> {
+    console.log("Refreshing access token");
     if (!this.refresh_token) {
-      console.error("No refresh token found");
-      return;
+      return false;
     }
 
     const body = new URLSearchParams();
@@ -121,9 +122,14 @@ export default class SpotifyAPI {
         localStorage.setItem("access_token", res.data.access_token);
         this.access_token = res.data.access_token;
         return true;
-      }
+      } else return false;
+
     } catch (err) {
+      console.error("Bad refresh token");
       console.error(err);
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      return false;
     }
   }
 
@@ -210,6 +216,7 @@ export default class SpotifyAPI {
   // getCurrentlyPlayingTrack
 
   startResumePlayback = async ({ device_id, uris }: { device_id?: string, uris?: [string] }) => {
+    console.log("Starting / resuming playback");
     const params = new URLSearchParams();
     if (device_id) params.append("device_id", device_id);
 

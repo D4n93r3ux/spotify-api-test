@@ -10,6 +10,7 @@ const SpotifyConnector = () => {
   const [displayPunchline, setDisplayPunchline] = useState(false);
 
   useEffect(() => {
+    console.log("useEffect");
     // In strict mode during development, React renders all components twice.
     // This produces errors as we try to handle a code callback twice.
     // Instead, we fire the handleCallback async function and immediately
@@ -46,6 +47,7 @@ const SpotifyConnector = () => {
   };
 
   const injectSpotifyWebPlayer = () => {
+    console.log("Injecting Spotify web player");
     // This is a bit of a hacky way to conditionally inject the Spotify Web
     // Player script only once we have connected to Spotify.
     const sdkScript = document.createElement('script');
@@ -62,7 +64,20 @@ const SpotifyConnector = () => {
           getOAuthToken: cb => { cb(token); },
           volume: 0.5
         });
+        player.addListener("initialization_error", () => {
+          console.log("Initialization error");
+        });
+        player.addListener("not_ready", () => {
+          console.log("Not ready");
+        });
+        player.addListener("authentication_error", () => {
+          console.log("Authentication error");
+        });
+        player.addListener("account_error", () => {
+          console.log("Account error"); 
+        });
         player.addListener("ready", ({ device_id }) => {
+          console.log("Ready");
           sessionStorage.setItem("device_id", device_id);
         });
         player.connect();
@@ -77,9 +92,9 @@ const SpotifyConnector = () => {
     setTimeout(async () => {
       const device_id = sessionStorage.getItem("device_id");
       if (device_id) {
-        await spotifyService.startResumePlayback({ device_id, uris: ["spotify:track:4cOdK2wGLETKBW3PvgPWqT"] });
+        // await spotifyService.transferPlayback({ device_id, play: true });
+        // await spotifyService.startResumePlayback({ device_id, uris: ["spotify:track:4cOdK2wGLETKBW3PvgPWqT"] });
         setDisplayPunchline(true);
-        spotifyService.startResumePlayback({});
       };
     }, 3000);
 
