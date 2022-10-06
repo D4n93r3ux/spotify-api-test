@@ -40,7 +40,7 @@ const SpotifyConnector = () => {
     if (await spotifyService.refreshAccessToken()) {
       setIsConnected("connected");
       injectSpotifyWebPlayer();
-      activatePunchline();
+      setDisplayPunchline(true);
     } else {
       setIsConnected("disconnected");
     }
@@ -50,12 +50,12 @@ const SpotifyConnector = () => {
     console.log("Injecting Spotify web player");
     // This is a bit of a hacky way to conditionally inject the Spotify Web
     // Player script only once we have connected to Spotify.
-    const sdkScript = document.createElement('script');
-    sdkScript.src = "https://sdk.scdn.co/spotify-player.js"
+    const sdkScript = document.createElement("script");
+    sdkScript.src = "https://sdk.scdn.co/spotify-player.js";
 
     // We're also going to grab the device_id of our newly created web player
     // and store it in session storage for retrieval by the component.
-    const initScript = document.createElement('script');
+    const initScript = document.createElement("script");
     initScript.textContent = `
       window.onSpotifyWebPlaybackSDKReady = () => {
         const token = "${spotifyService.access_token}";
@@ -82,30 +82,38 @@ const SpotifyConnector = () => {
         });
         player.connect();
       }
-    `
+    `;
 
     document.body.appendChild(sdkScript);
     document.body.appendChild(initScript);
-  }
+  };
 
-  const activatePunchline = () => {
-    setTimeout(async () => {
-      const device_id = sessionStorage.getItem("device_id");
-      if (device_id) {
-        // await spotifyService.transferPlayback({ device_id, play: true });
-        // await spotifyService.startResumePlayback({ device_id, uris: ["spotify:track:4cOdK2wGLETKBW3PvgPWqT"] });
-        setDisplayPunchline(true);
-      };
-    }, 3000);
-
-  }
+  const activatePunchline = async () => {
+    const device_id = sessionStorage.getItem("device_id");
+    if (device_id) {
+      await spotifyService.transferPlayback({ device_id, play: true });
+      spotifyService.startResumePlayback({
+        device_id,
+        uris: ["spotify:track:4cOdK2wGLETKBW3PvgPWqT"],
+      });
+    }
+  };
 
   return (
     <>
       {isConnected === "disconnected" ? (
-        <button className="connect-button" onClick={requestAuthorization}>Connect to Spotify</button>
+        <button className="connect-button" onClick={requestAuthorization}>
+          Connect to Spotify
+        </button>
       ) : (
-      displayPunchline && <img className="punchline" src={image} alt="" />
+        displayPunchline && (
+          <img
+            onClick={activatePunchline}
+            className="punchline"
+            src={image}
+            alt=""
+          />
+        )
       )}
     </>
   );
